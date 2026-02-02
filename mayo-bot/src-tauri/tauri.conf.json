@@ -13,9 +13,17 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "mayo-bot",
-        "width": 800,
-        "height": 600
+        "title": "mayo",
+        "width": 200,
+        "height": 200,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "resizable": false,
+        "skipTaskbar": true,
+        "focus": false,
+        "devtools": true,
+        "shadow": false
       }
     ],
     "security": {

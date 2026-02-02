@@ -1,22 +1,32 @@
-import { invoke } from "@tauri-apps/api/core";
+import { getCurrentWindow } from '@tauri-apps/api/window';
+import { Pet } from './pet';
+import { WindowDragger } from './window';
 
-let greetInputEl: HTMLInputElement | null;
-let greetMsgEl: HTMLElement | null;
+// Initialize pet
+const pet = new Pet('pet');
 
-async function greet() {
-  if (greetMsgEl && greetInputEl) {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    greetMsgEl.textContent = await invoke("greet", {
-      name: greetInputEl.value,
-    });
+// Setup dragging
+const petElement = document.getElementById('pet')!;
+new WindowDragger(petElement);
+
+// ESC key to close
+document.addEventListener('keydown', async (e) => {
+  if (e.key === 'Escape') {
+    await getCurrentWindow().close();
   }
-}
+});
 
-window.addEventListener("DOMContentLoaded", () => {
-  greetInputEl = document.querySelector("#greet-input");
-  greetMsgEl = document.querySelector("#greet-msg");
-  document.querySelector("#greet-form")?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    greet();
-  });
+// Test walking - click background to make pet walk
+document.addEventListener('click', (e) => {
+  if (e.target !== petElement) {
+    // Walk to clicked position
+    const petCenter = pet.position.x + petElement.offsetWidth / 2;
+    const clickX = e.clientX;
+
+    if (clickX < petCenter) {
+      pet.walkLeft(100, 1000); // 100px in 1 second
+    } else {
+      pet.walkRight(100, 1000);
+    }
+  }
 });
