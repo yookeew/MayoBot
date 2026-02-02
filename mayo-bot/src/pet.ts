@@ -3,14 +3,18 @@ export class Pet {
   state: 'idle' | 'walking-left' | 'walking-right';
   position: { x: number; y: number };
   walkInterval: number | null;
+  dragOffset: { x: number; y: number } | null;
 
   constructor(elementId: string) {
     this.element = document.getElementById(elementId)!;
     this.state = 'idle';
     this.position = { x: 0, y: 0 };
     this.walkInterval = null;
+    this.dragOffset = null;
 
     this.updatePosition();
+    this.setupDrag();
+    this.setupClickFollow();
   }
 
   setState(newState: 'idle' | 'walking-left' | 'walking-right') {
@@ -26,7 +30,6 @@ export class Pet {
   }
 
   moveTo(x: number, y: number) {
-    // Keep within screen bounds
     const maxX = window.innerWidth - this.element.offsetWidth;
     const maxY = window.innerHeight - this.element.offsetHeight;
 
@@ -35,16 +38,16 @@ export class Pet {
 
     this.element.style.left = `${x}px`;
     this.element.style.top = `${y}px`;
-    this.element.style.transform = 'none'; // Remove centering transform
+    this.element.style.transform = 'none';
     this.position = { x, y };
   }
 
-  walkLeft(distance: number, duration: number) {
+  walkTo(targetX: number, targetY: number, duration: number) {
     this.stopWalking();
-    this.setState('walking-left');
+    this.setState(targetX >= this.position.x ? 'walking-right' : 'walking-left');
 
     const startX = this.position.x;
-    const targetX = Math.max(0, startX - distance);
+    const startY = this.position.y;
     const startTime = Date.now();
 
     this.walkInterval = window.setInterval(() => {
@@ -52,33 +55,10 @@ export class Pet {
       const progress = Math.min(elapsed / duration, 1);
 
       const currentX = startX + (targetX - startX) * progress;
-      this.moveTo(currentX, this.position.y);
+      const currentY = startY + (targetY - startY) * progress;
+      this.moveTo(currentX, currentY);
 
-      if (progress >= 1) {
-        this.stopWalking();
-      }
-    }, 16); // ~60fps
-  }
-
-  walkRight(distance: number, duration: number) {
-    this.stopWalking();
-    this.setState('walking-right');
-
-    const startX = this.position.x;
-    const maxX = window.innerWidth - this.element.offsetWidth;
-    const targetX = Math.min(maxX, startX + distance);
-    const startTime = Date.now();
-
-    this.walkInterval = window.setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-
-      const currentX = startX + (targetX - startX) * progress;
-      this.moveTo(currentX, this.position.y);
-
-      if (progress >= 1) {
-        this.stopWalking();
-      }
+      if (progress >= 1) this.stopWalking();
     }, 16);
   }
 
@@ -88,5 +68,42 @@ export class Pet {
       this.walkInterval = null;
     }
     this.setState('idle');
+  }
+
+  // -------------------
+  // Dragging logic
+  // -------------------
+  setupDrag() {
+    this.element.addEventListener('mousedown', (e) => {
+      this.dragOffset = {
+        x: e.clientX - this.position.x,
+        y: e.clientY - this.position.y,
+      };
+      this.stopWalking();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!this.dragOffset) return;
+      this.moveTo(e.clientX - this.dragOffset.x, e.clientY - this.dragOffset.y);
+    });
+
+    document.addEventListener('mouseup', () => {
+      this.dragOffset = null;
+    });
+  }
+
+  // -------------------
+  // Click-to-follow logic
+  // -------------------
+  setupClickFollow() {
+    window.addEventListener('click', (e) => {
+      // Ignore clicks on the pet itself
+      if (e.target === this.element) return;
+
+      const targetX = e.clientX - this.element.offsetWidth / 2;
+      const targetY = e.clientY - this.element.offsetHeight / 2;
+
+      this.walkTo(targetX, targetY, 1000); // 1 second duration
+    });
   }
 }

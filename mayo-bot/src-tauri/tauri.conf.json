@@ -13,9 +13,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "mayo",
-        "width": 200,
-        "height": 200,
+        "fullscreen": true,
         "decorations": false,
         "transparent": true,
         "alwaysOnTop": true,
