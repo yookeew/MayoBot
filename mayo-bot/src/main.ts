@@ -1,22 +1,32 @@
-import { invoke } from "@tauri-apps/api/core";
+import { getCurrentWindow } from '@tauri-apps/api/window';
+import { Pet } from './pet';
 
-let greetInputEl: HTMLInputElement | null;
-let greetMsgEl: HTMLElement | null;
+// Configure fullscreen transparent window
+async function configureWindow() {
+  const win = getCurrentWindow();
 
-async function greet() {
-  if (greetMsgEl && greetInputEl) {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    greetMsgEl.textContent = await invoke("greet", {
-      name: greetInputEl.value,
-    });
-  }
+  await win.setDecorations(false);
+  await win.setAlwaysOnTop(true);
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-  greetInputEl = document.querySelector("#greet-input");
-  greetMsgEl = document.querySelector("#greet-msg");
-  document.querySelector("#greet-form")?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    greet();
-  });
+// Initialize
+configureWindow();
+
+// Create pet
+const pet = new Pet('pet');
+
+// ESC key to close
+document.addEventListener('keydown', async (e) => {
+  if (e.key === 'Escape') {
+    await getCurrentWindow().close();
+  }
+});
+
+// Right-click anywhere to close (backup method)
+document.addEventListener('contextmenu', async (e) => {
+  e.preventDefault();
+  const shouldClose = confirm('Close Mayo Bot?');
+  if (shouldClose) {
+    await getCurrentWindow().close();
+  }
 });
