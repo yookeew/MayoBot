@@ -6,6 +6,9 @@ export class ThreePet {
   camera: THREE.PerspectiveCamera;
   renderer: THREE.WebGLRenderer;
   model?: THREE.Object3D;
+  mixer?: THREE.AnimationMixer;
+  actions: { [key: string]: THREE.AnimationAction } = {};
+  clock: THREE.Clock;
 
   constructor(canvas: HTMLCanvasElement) {
     console.log('ThreePet constructor ran', canvas);
@@ -40,6 +43,9 @@ export class ThreePet {
     dir.position.set(5, 10, 5);
     this.scene.add(dir);
 
+    // Clock for animations
+    this.clock = new THREE.Clock();
+
     // 5️⃣ Load model
     this.loadModel();
 
@@ -55,17 +61,51 @@ export class ThreePet {
       this.model = gltf.scene;
       this.scene.add(this.model);
 
+      // Position, scale, rotation
       this.model.position.set(0, 0, 0);
-      this.model.scale.setScalar(0.1);
-        this.model.rotation.y = Math.PI * 3 / 2;
+      this.model.scale.setScalar(1);       // scale down
+      this.model.rotation.y = Math.PI * 3/2; // rotate 270° (90° left)
 
+      // Animations
+      if (gltf.animations.length) {
+        this.mixer = new THREE.AnimationMixer(this.model);
+        gltf.animations.forEach((clip) => {
+          const name = clip.name.toLowerCase();
+          this.actions[name] = this.mixer!.clipAction(clip);
+        });
+      }
 
       console.log('Model loaded!', gltf);
     });
   }
 
+  // Play an animation by lowercase name
+  play(actionName: string) {
+    if (!this.mixer || !this.actions[actionName]) return;
+
+    Object.values(this.actions).forEach(a => a.stop());
+    this.actions[actionName].play();
+  }
+
+  // Set model position (x/y in Three.js space)
+  setPosition(x: number, y: number) {
+    if (!this.model) return;
+    this.model.position.x = x;
+    this.model.position.y = y;
+  }
+
+  // Update mixer each frame
+  update(delta: number) {
+    if (this.mixer) this.mixer.update(delta);
+  }
+
+  // Render loop
   animate = () => {
     requestAnimationFrame(this.animate);
+
+    const delta = this.clock.getDelta();
+    this.update(delta);
+
     this.renderer.render(this.scene, this.camera);
   };
 }
