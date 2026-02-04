@@ -187,13 +187,13 @@ export class ThreePet {
 
     switch (direction) {
       case 'front-right':
-        this.model.rotation.y = Math.PI / 2; // 90° rotated
+        this.model.rotation.y = 0;
         break;
       case 'front-left':
         this.model.rotation.y = -Math.PI / 2; // 270° rotated
         break;
       case 'back-right':
-        this.model.rotation.y = 0;
+        this.model.rotation.y = Math.PI / 2; // 90° rotated
         break;
       case 'back-left':
         this.model.rotation.y = Math.PI; // 180° rotated

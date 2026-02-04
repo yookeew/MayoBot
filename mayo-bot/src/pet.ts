@@ -28,29 +28,35 @@ export class Pet {
     lastX: number | null = null;
     lastY: number | null = null;
 
-    moveTo(x: number, y: number) {
-      if (this.lastX !== null && this.lastY !== null) {
-        const dx = x - this.lastX;
-        const dy = y - this.lastY;
+   moveTo(x: number, y: number) {
+     if (this.lastX !== null && this.lastY !== null) {
+       const dx = x - this.lastX;
+       const dy = y - this.lastY;
 
-        if (dx !== 0 || dy !== 0) {
-          let facing: Facing;
+       // Only update facing if movement exceeds threshold
+       if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+         let facing: Facing;
 
-          if (dx >= 0 && dy >= 0) facing = 'front-right';
-          else if (dx < 0 && dy >= 0) facing = 'front-left';
-          else if (dx >= 0 && dy < 0) facing = 'back-right';
-          else facing = 'back-left';
+         if (dx >= 0 && dy >= 0) facing = 'front-right';
+         else if (dx < 0 && dy >= 0) facing = 'front-left';
+         else if (dx >= 0 && dy < 0) facing = 'back-right';
+         else facing = 'back-left';
 
-          this.three.setFacing(facing);
-        }
-      }
+         this.three.setFacing(facing);
+       }
+     }
 
-      this.lastX = x;
-      this.lastY = y;
+     this.lastX = x;
+     this.lastY = y;
 
-      this.position = { x, y };
-      this.three.setScreenPosition(x, y, this.canvasSize.width, this.canvasSize.height);
-    }
+     this.position = { x, y };
+     this.three.setScreenPosition(
+       x,
+       y,
+       this.canvasSize.width,
+       this.canvasSize.height
+     );
+   }
 
   /*
   moveTo(x: number, y: number) {
