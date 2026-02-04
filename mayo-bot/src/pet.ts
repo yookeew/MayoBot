@@ -23,6 +23,10 @@ export class Pet {
   }
 
   moveTo(x: number, y: number) {
+    // Clamp x/y to canvas bounds
+    x = Math.max(0, Math.min(this.canvasSize.width, x));
+    y = Math.max(0, Math.min(this.canvasSize.height, y));
+
     if (!this.facingLocked && this.lastX !== null && this.lastY !== null) {
       const dx = x - this.lastX;
       const dy = y - this.lastY;
@@ -52,26 +56,39 @@ export class Pet {
     );
   }
 
-  walkTo(x: number, y: number, duration: number) {
+  walkTo(x: number, y: number) {
     if (!this.three.ready) return;
+
+    // Clamp destination to canvas bounds
+    x = Math.max(0, Math.min(this.canvasSize.width, x));
+    y = Math.max(0, Math.min(this.canvasSize.height, y));
 
     this.stopWalking();
     this.three.play('walk');
 
     const start = { ...this.position };
+    const dx = x - start.x;
+    const dy = y - start.y;
+    const distance = Math.hypot(dx, dy);
+
+    // Set a constant duration per pixel
+    const SPEED = 3; // pixels per frame, higher = faster
+    const totalFrames = distance / SPEED;
     const startTime = Date.now();
 
     this.walkInterval = window.setInterval(() => {
-      const t = Math.min((Date.now() - startTime) / duration, 1);
+      const elapsed = Date.now() - startTime;
+      const t = Math.min(elapsed / (totalFrames * 16), 1); // 16ms per frame
 
       this.moveTo(
-        start.x + (x - start.x) * t,
-        start.y + (y - start.y) * t
+        start.x + dx * t,
+        start.y + dy * t
       );
 
       if (t >= 1) this.stopWalking();
     }, 16);
   }
+
 
   stopWalking() {
     if (this.walkInterval) clearInterval(this.walkInterval);
@@ -152,8 +169,7 @@ export class Pet {
         const rect = this.three.renderer.domElement.getBoundingClientRect();
         this.walkTo(
           e.clientX - rect.left,
-          e.clientY - rect.top,
-          1000
+          e.clientY - rect.top
         );
         this.clickTimeout = null;
       }, 250); // must be < system double-click time
@@ -180,7 +196,7 @@ export class Pet {
 
       // Hold pet animation for 2 seconds
       setTimeout(() => {
-        this.three.setFacing(previousFacing);
+        //this.three.setFacing(previousFacing);
         this.currentFacing = previousFacing;
         this.facingLocked = false;
         this.three.play('idle');
