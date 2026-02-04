@@ -13,15 +13,15 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "fullscreen": true,
+        "width": 600,
+        "height": 600,
         "decorations": false,
         "transparent": true,
         "alwaysOnTop": true,
         "resizable": false,
         "skipTaskbar": true,
         "focus": false,
-        "devtools": true,
-        "shadow": false
+        "devtools": true
       }
     ],
     "security": {
