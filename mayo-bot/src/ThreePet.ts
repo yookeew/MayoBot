@@ -176,6 +176,13 @@ export class ThreePet {
       this.model.position.z = hit.z;
     }
   }*/
+  setFacing(direction: 'left' | 'right') {
+    if (!this.model) return;
+
+    // Assumes model faces RIGHT by default
+    this.model.scale.x = direction === 'right' ? -1 : 1;
+  }
+
 
 
   // Update mixer each frame

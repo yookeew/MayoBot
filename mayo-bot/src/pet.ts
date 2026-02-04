@@ -7,6 +7,7 @@ export class Pet {
   walkInterval: number | null = null;
   dragOffset: { x: number; y: number } | null = null;
   isDragging = false;
+  lastX: number | null = null;
 
 
   constructor() {
@@ -17,9 +18,29 @@ export class Pet {
     this.setupClickFollow();
   }
 
+/*
   moveTo(x: number, y: number) {
     this.position = { x, y };
     this.three.setScreenPosition(x, y, this.canvasSize.width, this.canvasSize.height);
+  }*/
+  moveTo(x: number, y: number) {
+    if (this.lastX !== null) {
+      const dx = x - this.lastX;
+
+      if (dx !== 0) {
+        this.three.setFacing(dx > 0 ? 'right' : 'left');
+      }
+    }
+
+    this.lastX = x;
+
+    this.position = { x, y };
+    this.three.setScreenPosition(
+      x,
+      y,
+      this.canvasSize.width,
+      this.canvasSize.height
+    );
   }
 
   walkTo(x: number, y: number, duration: number) {
