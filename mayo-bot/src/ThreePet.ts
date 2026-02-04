@@ -198,6 +198,9 @@ export class ThreePet {
       case 'back-left':
         this.model.rotation.y = Math.PI; // 180° rotated
         break;
+      case 'front':
+          this.model.rotation.y = -Math.PI/4; // 45° rotated
+          break;
     }
   }
 
