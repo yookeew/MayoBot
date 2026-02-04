@@ -10,24 +10,23 @@ export class ThreePet {
   actions: { [key: string]: THREE.AnimationAction } = {};
   clock: THREE.Clock;
   ready = false;
-
   constructor(canvas: HTMLCanvasElement) {
     console.log('ThreePet constructor ran', canvas);
 
-    // 1️⃣ Scene
+    // Scene
     this.scene = new THREE.Scene();
 
-    // 2️⃣ Camera
+    // Camera
     this.camera = new THREE.PerspectiveCamera(
       50,
-      window.innerWidth / window.innerHeight,
+      1, // 600/600 = 1
       0.1,
       100
     );
     this.camera.position.set(0, 1.5, 3);
     this.camera.lookAt(0, 1, 0);
 
-    // 3️⃣ Renderer
+    // Renderer
     this.renderer = new THREE.WebGLRenderer({
       canvas,
       alpha: true,
@@ -36,7 +35,7 @@ export class ThreePet {
     this.renderer.setSize(600, 600);
     this.renderer.setPixelRatio(window.devicePixelRatio);
 
-    // 4️⃣ Lights
+    // Lights
     const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
     this.scene.add(hemi);
 
@@ -47,10 +46,10 @@ export class ThreePet {
     // Clock for animations
     this.clock = new THREE.Clock();
 
-    // 5️⃣ Load model
+    // Load model
     this.loadModel();
 
-    // 6️⃣ Start render loop
+    // Start render loop
     this.animate();
   }
 
@@ -64,44 +63,70 @@ export class ThreePet {
 
       // Position, scale, rotation
       this.model.position.set(0, 0, 0);
-      this.model.scale.setScalar(1);       // scale down
-      this.model.rotation.y = Math.PI * 3/2; // rotate 270° (90° left)
+      this.model.scale.setScalar(1);
+      this.model.rotation.y = Math.PI * 3 / 2; // rotate 270° (90° left)
 
       // Animations
       if (gltf.animations.length) {
         this.mixer = new THREE.AnimationMixer(this.model);
         gltf.animations.forEach((clip) => {
           const name = clip.name.toLowerCase();
-          this.actions[name] = this.mixer!.clipAction(clip);
+          const action = this.mixer!.clipAction(clip);
+          action.setLoop(THREE.LoopRepeat, Infinity);
+          this.actions[name] = action;
         });
+
+        // Start with idle
+        if (this.actions['idle']) {
+          this.actions['idle'].play();
+        }
       }
 
-        this.ready = true;
-
+      this.ready = true;
       console.log('Model loaded!', gltf);
+      console.log('Available animations:', Object.keys(this.actions));
     });
   }
 
   // Play an animation by lowercase name
   play(actionName: string) {
-    if (!this.mixer || !this.actions[actionName]) return;
+    if (!this.mixer || !this.actions[actionName]) {
+      console.warn(`Animation "${actionName}" not found`);
+      return;
+    }
 
     Object.values(this.actions).forEach(a => a.stop());
     this.actions[actionName].play();
   }
 
-worldPos = new THREE.Vector3(0, 0, 0);
+  // Convert screen coordinates to world position (perspective-safe)
+  setScreenPosition(
+    screenX: number,
+    screenY: number,
+    canvasWidth: number,
+    canvasHeight: number
+  ) {
+    if (!this.model) return;
 
-moveBy(dx: number, dy: number) {
-  if (!this.model) return;
+    // Normalize mouse coords (-1 to +1)
+    const mouse = new THREE.Vector2(
+      (screenX / canvasWidth) * 2 - 1,
+      -(screenY / canvasHeight) * 2 + 1
+    );
 
-  const speed = 0.005; // tweak feel here
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, this.camera);
 
-  this.worldPos.x += dx * speed;
-  this.worldPos.y -= dy * speed; // invert Y
+    // Horizontal plane at y = 0
+    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    const hit = new THREE.Vector3();
 
-  this.model.position.copy(this.worldPos);
-}
+    if (raycaster.ray.intersectPlane(plane, hit)) {
+      this.model.position.x = hit.x;
+      this.model.position.z = hit.z;
+    }
+  }
+
 
   // Update mixer each frame
   update(delta: number) {

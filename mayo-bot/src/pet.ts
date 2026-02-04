@@ -1,83 +1,110 @@
-import { ThreePet } from './threePet'
+import { ThreePet } from './threePet';
 
 export class Pet {
-  three: ThreePet
-  position = { x: 200, y: 200 }
-  walkInterval: number | null = null
-  dragOffset: { x: number; y: number } | null = null
+  three: ThreePet;
+  position = { x: 300, y: 300 }; // Start at center of 600x600 canvas
+  canvasSize = { width: 600, height: 600 };
+  walkInterval: number | null = null;
+  dragOffset: { x: number; y: number } | null = null;
+  isDragging = false;
+
 
   constructor() {
-    const canvas = document.getElementById('pet-canvas') as HTMLCanvasElement
-    this.three = new ThreePet(canvas)
+    const canvas = document.getElementById('pet-canvas') as HTMLCanvasElement;
+    this.three = new ThreePet(canvas);
 
-    this.setupDrag()
-    this.setupClickFollow()
+    this.setupDrag();
+    this.setupClickFollow();
   }
-
 
   moveTo(x: number, y: number) {
-    const dx = x - this.position.x;
-    const dy = y - this.position.y;
-
     this.position = { x, y };
-    this.three.moveBy(dx, dy);
+    this.three.setScreenPosition(x, y, this.canvasSize.width, this.canvasSize.height);
   }
 
-
   walkTo(x: number, y: number, duration: number) {
-      console.log("walkto called")
-      if (!this.three.ready) return
-    this.stopWalking()
-    this.three.play('walk')
+    console.log('walkTo called');
+    if (!this.three.ready) return;
 
-    const start = { ...this.position }
-    const startTime = Date.now()
+    this.stopWalking();
+    this.three.play('walk');
+
+    const start = { ...this.position };
+    const startTime = Date.now();
 
     this.walkInterval = window.setInterval(() => {
-      const t = Math.min((Date.now() - startTime) / duration, 1)
+      const t = Math.min((Date.now() - startTime) / duration, 1);
 
       this.moveTo(
         start.x + (x - start.x) * t,
         start.y + (y - start.y) * t
-      )
+      );
 
-      if (t >= 1) this.stopWalking()
-    }, 16)
+      if (t >= 1) this.stopWalking();
+    }, 16);
   }
 
   stopWalking() {
-    if (this.walkInterval) clearInterval(this.walkInterval)
-    this.walkInterval = null
-    this.three.play('idle')
+    if (this.walkInterval) clearInterval(this.walkInterval);
+    this.walkInterval = null;
+    this.three.play('idle');
   }
 
   setupDrag() {
+    let startPos: { x: number; y: number } | null = null;
+    const DRAG_THRESHOLD = 5; // pixels
+
     window.addEventListener('mousedown', (e) => {
+      startPos = { x: e.clientX, y: e.clientY };
       this.dragOffset = {
         x: e.clientX - this.position.x,
         y: e.clientY - this.position.y,
-      }
-      this.three.play('drag')
-    })
+      };
+      this.isDragging = false;
+    });
 
     window.addEventListener('mousemove', (e) => {
-      if (!this.dragOffset) return
-      this.moveTo(
-        e.clientX - this.dragOffset.x,
-        e.clientY - this.dragOffset.y
-      )
-    })
+      if (!this.dragOffset || !startPos) return;
+
+      const dist = Math.hypot(e.clientX - startPos.x, e.clientY - startPos.y);
+
+      if (dist > DRAG_THRESHOLD && !this.isDragging) {
+        this.isDragging = true;
+        this.stopWalking();
+        this.three.play('drag');
+      }
+
+      if (this.isDragging) {
+          const rect = this.three.renderer.domElement.getBoundingClientRect();
+        this.moveTo(
+          e.clientX - rect.left - this.dragOffset.x,
+          e.clientY - rect.top - this.dragOffset.y
+        );
+      }
+    });
 
     window.addEventListener('mouseup', () => {
-      this.dragOffset = null
-      this.three.play('idle')
-    })
+      if (this.isDragging) {
+        this.three.play('idle');
+      }
+      this.dragOffset = null;
+      startPos = null;
+      this.isDragging = false;
+    });
   }
 
   setupClickFollow() {
     window.addEventListener('click', (e) => {
-        console.log("click event listener called")
-      this.walkTo(e.clientX, e.clientY, 1000)
-    })
+      // Only walk if we didn't just drag
+      if (this.isDragging) return;
+
+      console.log('click event listener called');
+      const rect = this.three.renderer.domElement.getBoundingClientRect();
+        this.walkTo(
+          e.clientX - rect.left,
+          e.clientY - rect.top,
+          1000
+        );
+    });
   }
 }
