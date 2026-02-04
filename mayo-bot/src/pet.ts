@@ -8,6 +8,7 @@ export class Pet {
   dragOffset: { x: number; y: number } | null = null;
   isDragging = false;
   lastX: number | null = null;
+  lastY: number | null = null;
 
 
   constructor() {
@@ -23,6 +24,35 @@ export class Pet {
     this.position = { x, y };
     this.three.setScreenPosition(x, y, this.canvasSize.width, this.canvasSize.height);
   }*/
+
+    lastX: number | null = null;
+    lastY: number | null = null;
+
+    moveTo(x: number, y: number) {
+      if (this.lastX !== null && this.lastY !== null) {
+        const dx = x - this.lastX;
+        const dy = y - this.lastY;
+
+        if (dx !== 0 || dy !== 0) {
+          let facing: Facing;
+
+          if (dx >= 0 && dy >= 0) facing = 'front-right';
+          else if (dx < 0 && dy >= 0) facing = 'front-left';
+          else if (dx >= 0 && dy < 0) facing = 'back-right';
+          else facing = 'back-left';
+
+          this.three.setFacing(facing);
+        }
+      }
+
+      this.lastX = x;
+      this.lastY = y;
+
+      this.position = { x, y };
+      this.three.setScreenPosition(x, y, this.canvasSize.width, this.canvasSize.height);
+    }
+
+  /*
   moveTo(x: number, y: number) {
     if (this.lastX !== null) {
       const dx = x - this.lastX;
@@ -41,7 +71,7 @@ export class Pet {
       this.canvasSize.width,
       this.canvasSize.height
     );
-  }
+  }*/
 
   walkTo(x: number, y: number, duration: number) {
     console.log('walkTo called');
@@ -92,7 +122,8 @@ export class Pet {
       if (dist > DRAG_THRESHOLD && !this.isDragging) {
         this.isDragging = true;
         this.stopWalking();
-        this.three.play('drag');
+        console.log("dragging called")
+        this.three.play('grab');
       }
 
       if (this.isDragging) {

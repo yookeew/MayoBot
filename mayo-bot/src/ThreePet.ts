@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
+export type Facing = 'front-right' | 'front-left' | 'back-right' | 'back-left';
+
 export class ThreePet {
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
@@ -176,12 +178,29 @@ export class ThreePet {
       this.model.position.z = hit.z;
     }
   }*/
-  setFacing(direction: 'left' | 'right') {
+  setFacing(direction: Facing) {
     if (!this.model) return;
 
-    // Assumes model faces RIGHT by default
-    this.model.scale.x = direction === 'right' ? -1 : 1;
+    // Reset scale and rotation
+    this.model.scale.x = 1;
+    this.model.scale.z = 1;
+
+    switch (direction) {
+      case 'front-right':
+        this.model.rotation.y = Math.PI / 2; // 90° rotated
+        break;
+      case 'front-left':
+        this.model.rotation.y = -Math.PI / 2; // 270° rotated
+        break;
+      case 'back-right':
+        this.model.rotation.y = 0;
+        break;
+      case 'back-left':
+        this.model.rotation.y = Math.PI; // 180° rotated
+        break;
+    }
   }
+
 
 
 
