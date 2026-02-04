@@ -14,12 +14,18 @@ export class Pet {
     this.setupClickFollow()
   }
 
+
   moveTo(x: number, y: number) {
-    this.position = { x, y }
-    this.three.setPosition(x, y)
+    const dx = x - this.position.x;
+    const dy = y - this.position.y;
+
+    this.position = { x, y };
+    this.three.moveBy(dx, dy);
   }
 
+
   walkTo(x: number, y: number, duration: number) {
+      console.log("walkto called")
       if (!this.three.ready) return
     this.stopWalking()
     this.three.play('walk')
@@ -70,6 +76,7 @@ export class Pet {
 
   setupClickFollow() {
     window.addEventListener('click', (e) => {
+        console.log("click event listener called")
       this.walkTo(e.clientX, e.clientY, 1000)
     })
   }

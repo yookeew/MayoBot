@@ -9,6 +9,7 @@ export class ThreePet {
   mixer?: THREE.AnimationMixer;
   actions: { [key: string]: THREE.AnimationAction } = {};
   clock: THREE.Clock;
+  ready = false;
 
   constructor(canvas: HTMLCanvasElement) {
     console.log('ThreePet constructor ran', canvas);
@@ -32,7 +33,7 @@ export class ThreePet {
       alpha: true,
       antialias: true,
     });
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setSize(600, 600);
     this.renderer.setPixelRatio(window.devicePixelRatio);
 
     // 4️⃣ Lights
@@ -75,6 +76,8 @@ export class ThreePet {
         });
       }
 
+        this.ready = true;
+
       console.log('Model loaded!', gltf);
     });
   }
@@ -87,12 +90,18 @@ export class ThreePet {
     this.actions[actionName].play();
   }
 
-  // Set model position (x/y in Three.js space)
-  setPosition(x: number, y: number) {
-    if (!this.model) return;
-    this.model.position.x = x;
-    this.model.position.y = y;
-  }
+worldPos = new THREE.Vector3(0, 0, 0);
+
+moveBy(dx: number, dy: number) {
+  if (!this.model) return;
+
+  const speed = 0.005; // tweak feel here
+
+  this.worldPos.x += dx * speed;
+  this.worldPos.y -= dy * speed; // invert Y
+
+  this.model.position.copy(this.worldPos);
+}
 
   // Update mixer each frame
   update(delta: number) {
