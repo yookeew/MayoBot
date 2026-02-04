@@ -17,6 +17,29 @@ export class ThreePet {
     this.scene = new THREE.Scene();
 
     // Camera
+   const size = 5;
+   const aspect = 1; // 600 / 600
+
+   this.camera = new THREE.OrthographicCamera(
+     -size * aspect,
+     size * aspect,
+     size,
+     -size,
+     0.1,
+     100
+   );
+
+   // Position camera diagonally above the scene
+   this.camera.position.set(10, 10, 10);
+
+   // Classic isometric angles
+   this.camera.rotation.order = 'YXZ';
+   this.camera.rotation.y = Math.PI / 4;        // 45°
+   this.camera.rotation.x = -Math.atan(1 / Math.sqrt(2)); // ≈ 35.264°
+   this.camera.zoom = 1.2; // try 0.8 – 2.0
+
+   this.camera.updateProjectionMatrix();
+    /*
     this.camera = new THREE.PerspectiveCamera(
       50,
       1, // 600/600 = 1
@@ -24,7 +47,7 @@ export class ThreePet {
       100
     );
     this.camera.position.set(0, 1.5, 3);
-    this.camera.lookAt(0, 1, 0);
+    this.camera.lookAt(0, 1, 0);*/
 
     // Renderer
     this.renderer = new THREE.WebGLRenderer({
@@ -100,6 +123,33 @@ export class ThreePet {
   }
 
   // Convert screen coordinates to world position (perspective-safe)
+   setScreenPosition(
+     screenX: number,
+     screenY: number,
+     canvasWidth: number,
+     canvasHeight: number
+   ) {
+     if (!this.model) return;
+
+     const mouse = new THREE.Vector2(
+       (screenX / canvasWidth) * 2 - 1,
+       -(screenY / canvasHeight) * 2 + 1
+     );
+
+     const raycaster = new THREE.Raycaster();
+     raycaster.setFromCamera(mouse, this.camera);
+
+     // XZ ground plane (Y = 0)
+     const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+     const hit = new THREE.Vector3();
+
+     if (raycaster.ray.intersectPlane(plane, hit)) {
+       this.model.position.x = hit.x;
+       this.model.position.z = hit.z;
+     }
+   }
+
+/*
   setScreenPosition(
     screenX: number,
     screenY: number,
@@ -125,7 +175,7 @@ export class ThreePet {
       this.model.position.x = hit.x;
       this.model.position.z = hit.z;
     }
-  }
+  }*/
 
 
   // Update mixer each frame
