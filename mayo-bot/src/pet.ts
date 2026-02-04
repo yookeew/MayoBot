@@ -9,6 +9,7 @@ export class Pet {
   isDragging = false;
   lastX: number | null = null;
   lastY: number | null = null;
+  facingLocked = false;
 
 
   constructor() {
@@ -19,21 +20,14 @@ export class Pet {
     this.setupClickFollow();
   }
 
-/*
-  moveTo(x: number, y: number) {
-    this.position = { x, y };
-    this.three.setScreenPosition(x, y, this.canvasSize.width, this.canvasSize.height);
-  }*/
-
     lastX: number | null = null;
     lastY: number | null = null;
 
    moveTo(x: number, y: number) {
-     if (this.lastX !== null && this.lastY !== null) {
+     if (!this.facingLocked && this.lastX !== null && this.lastY !== null) {
        const dx = x - this.lastX;
        const dy = y - this.lastY;
 
-       // Only update facing if movement exceeds threshold
        if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
          let facing: Facing;
 
@@ -58,26 +52,6 @@ export class Pet {
      );
    }
 
-  /*
-  moveTo(x: number, y: number) {
-    if (this.lastX !== null) {
-      const dx = x - this.lastX;
-
-      if (dx !== 0) {
-        this.three.setFacing(dx > 0 ? 'right' : 'left');
-      }
-    }
-
-    this.lastX = x;
-
-    this.position = { x, y };
-    this.three.setScreenPosition(
-      x,
-      y,
-      this.canvasSize.width,
-      this.canvasSize.height
-    );
-  }*/
 
   walkTo(x: number, y: number, duration: number) {
     console.log('walkTo called');
@@ -127,6 +101,7 @@ export class Pet {
 
       if (dist > DRAG_THRESHOLD && !this.isDragging) {
         this.isDragging = true;
+        this.facingLocked = true;
         this.stopWalking();
         console.log("dragging called")
         this.three.play('grab');
@@ -145,6 +120,7 @@ export class Pet {
       if (this.isDragging) {
         this.three.play('idle');
       }
+      this.facingLocked = false;
       this.dragOffset = null;
       startPos = null;
       this.isDragging = false;
