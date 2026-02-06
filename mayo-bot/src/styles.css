@@ -82,3 +82,29 @@ body {
     user-select: none;         /* prevents text selection / highlight */
     -webkit-user-drag: none;
 }
+#pet-name {
+  position: fixed;  /* manually place */
+  top: 47px;        /* adjust to sit inside frame */
+  left: 105px;       /* adjust to sit inside frame */
+  font-size: 14px;
+  font-weight: bold;
+  font-family: "Comic Sans MS";
+  color: white;
+  z-index: 30;      /* above frame */
+  cursor: text;
+  user-select: none;
+}
+
+/* Level text on top of the frame */
+#pet-level {
+  position: fixed;
+  top: 62px;        /* adjust manually */
+  left: 328px;      /* adjust manually */
+  font-size: 11px;
+  font-weight: bold;
+  font-family: "Comic Sans MS";
+  color: white;
+  z-index: 30;      /* above frame */
+  pointer-events: none;
+  user-select: none;
+}

@@ -61,10 +61,10 @@ export class ThreePet {
     this.renderer.setPixelRatio(window.devicePixelRatio);
 
     // Lights
-    const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 2.2);
     this.scene.add(hemi);
 
-    const dir = new THREE.DirectionalLight(0xffffff, 1);
+    const dir = new THREE.DirectionalLight(0xffffff, 2);
     dir.position.set(5, 10, 5);
     this.scene.add(dir);
 

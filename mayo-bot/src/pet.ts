@@ -211,6 +211,7 @@ export class Pet {
     }
 
     this.updateXPBar();
+    this.updateLevelDisplay();
     this.saveProgress();
   }
 
@@ -225,6 +226,12 @@ export class Pet {
     bar.style.width = `${width}px`;
   }
 
+  updateLevelDisplay() {
+    const levelEl = document.getElementById('pet-level');
+    if (!levelEl) return;
+
+    levelEl.textContent = `lvl ${this.level}`;
+  }
 
   saveProgress() {
     // stub — implemented later
