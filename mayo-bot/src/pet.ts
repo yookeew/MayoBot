@@ -12,6 +12,8 @@ export class Pet {
   facingLocked = false;
   clickTimeout: number | null = null;
   currentFacing: Facing = 'front-right';
+  walkSFX: HTMLAudioElement;
+  petSFX: HTMLAudioElement;
 
   level = 1;
   xp = 0;
@@ -20,6 +22,12 @@ export class Pet {
   constructor() {
     const canvas = document.getElementById('pet-canvas') as HTMLCanvasElement;
     this.three = new ThreePet(canvas);
+
+    this.walkSFX = new Audio('/walking.mp3');
+    this.walkSFX.volume = 0.3; // adjust volume
+
+    this.petSFX = new Audio('/happygrub.mp3');
+    this.petSFX.volume = 1; // adjust volume
 
     this.setupDrag();
     this.updateXPBar();
@@ -69,6 +77,9 @@ export class Pet {
     this.stopWalking();
     this.three.play('walk');
 
+    this.walkSFX.currentTime = 0; // play walky walky
+    this.walkSFX.play().catch(() => {});
+
     const start = { ...this.position };
     const dx = x - start.x;
     const dy = y - start.y;
@@ -95,6 +106,10 @@ export class Pet {
     if (this.walkInterval) clearInterval(this.walkInterval);
     this.walkInterval = null;
     this.three.play('idle');
+
+    // Stop walking sound
+      this.walkSFX.pause();
+      this.walkSFX.currentTime = 0;
   }
 
   isPointOnPet(clientX: number, clientY: number) {
@@ -193,6 +208,9 @@ export class Pet {
       this.three.play('pet');
       this.addXP(2);
 
+      this.petSFX.currentTime = 0;
+      this.petSFX.play().catch(() => {});
+
       setTimeout(() => {
         this.currentFacing = previousFacing;
         this.facingLocked = false;
@@ -216,7 +234,7 @@ export class Pet {
   }
 
   updateXPBar() {
-      const MAX_BAR_WIDTH = 240;
+      const MAX_BAR_WIDTH = 235;
     const bar = document.getElementById('xp-bar');
     if (!bar) return;
 
