@@ -61,3 +61,24 @@ body {
 #pet.walking-right {
   animation: walk 0.5s ease-in-out infinite;
 }
+#xp-bar {
+  position: fixed;  /* keep it out of container flow */
+  top: 67px;
+  left: 108px;
+  width: 60px;    /* give it a visible width initially for debugging */
+  height: 15px;
+  background: linear-gradient(90deg, #e07c7c, #e07c7c);
+  z-index: 10;     /* higher than canvas */
+}
+
+#xp-frame {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  width: 400px;   /* manually scale as needed */
+  height: auto;
+  z-index: 20;    /* on top of bar */
+  pointer-events: none;
+    user-select: none;         /* prevents text selection / highlight */
+    -webkit-user-drag: none;
+}

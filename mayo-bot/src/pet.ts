@@ -2,7 +2,7 @@ import { ThreePet } from './threePet';
 
 export class Pet {
   three: ThreePet;
-  position = { x: 300, y: 300 }; // Start at center of 600x600 canvas
+  position = { x: 300, y: 300 };
   canvasSize = { width: 600, height: 600 };
   walkInterval: number | null = null;
   dragOffset: { x: number; y: number } | null = null;
@@ -13,17 +13,21 @@ export class Pet {
   clickTimeout: number | null = null;
   currentFacing: Facing = 'front-right';
 
+  level = 1;
+  xp = 0;
+  xpForNextLevel = 20;
+
   constructor() {
     const canvas = document.getElementById('pet-canvas') as HTMLCanvasElement;
     this.three = new ThreePet(canvas);
 
     this.setupDrag();
+    this.updateXPBar();
     this.setupClickFollow();
     this.setupDoubleClickPet();
   }
 
   moveTo(x: number, y: number) {
-    // Clamp x/y to canvas bounds
     x = Math.max(0, Math.min(this.canvasSize.width, x));
     y = Math.max(0, Math.min(this.canvasSize.height, y));
 
@@ -59,7 +63,6 @@ export class Pet {
   walkTo(x: number, y: number) {
     if (!this.three.ready) return;
 
-    // Clamp destination to canvas bounds
     x = Math.max(0, Math.min(this.canvasSize.width, x));
     y = Math.max(0, Math.min(this.canvasSize.height, y));
 
@@ -71,14 +74,13 @@ export class Pet {
     const dy = y - start.y;
     const distance = Math.hypot(dx, dy);
 
-    // Set a constant duration per pixel
-    const SPEED = 3; // pixels per frame, higher = faster
+    const SPEED = 3;
     const totalFrames = distance / SPEED;
     const startTime = Date.now();
 
     this.walkInterval = window.setInterval(() => {
       const elapsed = Date.now() - startTime;
-      const t = Math.min(elapsed / (totalFrames * 16), 1); // 16ms per frame
+      const t = Math.min(elapsed / (totalFrames * 16), 1);
 
       this.moveTo(
         start.x + dx * t,
@@ -88,7 +90,6 @@ export class Pet {
       if (t >= 1) this.stopWalking();
     }, 16);
   }
-
 
   stopWalking() {
     if (this.walkInterval) clearInterval(this.walkInterval);
@@ -100,7 +101,7 @@ export class Pet {
     const rect = this.three.renderer.domElement.getBoundingClientRect();
     const x = clientX - rect.left;
     const y = clientY - rect.top;
-    const PET_RADIUS = 50; // adjust to match your pet size
+    const PET_RADIUS = 50;
 
     const dx = x - this.position.x;
     const dy = y - this.position.y;
@@ -110,7 +111,7 @@ export class Pet {
 
   setupDrag() {
     let startPos: { x: number; y: number } | null = null;
-    const DRAG_THRESHOLD = 5; // pixels
+    const DRAG_THRESHOLD = 5;
 
     window.addEventListener('mousedown', (e) => {
       if (!this.isPointOnPet(e.clientX, e.clientY)) return;
@@ -172,15 +173,13 @@ export class Pet {
           e.clientY - rect.top
         );
         this.clickTimeout = null;
-      }, 250); // must be < system double-click time
+      }, 250);
     });
   }
 
   setupDoubleClickPet() {
     window.addEventListener('dblclick', (e) => {
       if (this.isDragging) return;
-
-      // Only pet if double-click is on the pet
       if (!this.isPointOnPet(e.clientX, e.clientY)) return;
 
       this.stopWalking();
@@ -188,19 +187,46 @@ export class Pet {
 
       const previousFacing = this.currentFacing;
 
-      // Face front for petting
       this.three.setFacing('front');
       this.currentFacing = 'front';
 
       this.three.play('pet');
+      this.addXP(2);
 
-      // Hold pet animation for 2 seconds
       setTimeout(() => {
-        //this.three.setFacing(previousFacing);
         this.currentFacing = previousFacing;
         this.facingLocked = false;
         this.three.play('idle');
       }, 2000);
     });
+  }
+
+  addXP(amount: number) {
+    this.xp += amount;
+
+    while (this.xp >= this.xpForNextLevel) {
+      this.xp -= this.xpForNextLevel;
+      this.level++;
+      this.xpForNextLevel = Math.floor(this.xpForNextLevel * 1.5);
+    }
+
+    this.updateXPBar();
+    this.saveProgress();
+  }
+
+  updateXPBar() {
+      const MAX_BAR_WIDTH = 240;
+    const bar = document.getElementById('xp-bar');
+    if (!bar) return;
+
+    const progress = this.xp / this.xpForNextLevel;
+    const width = Math.min(progress * MAX_BAR_WIDTH, MAX_BAR_WIDTH);
+
+    bar.style.width = `${width}px`;
+  }
+
+
+  saveProgress() {
+    // stub — implemented later
   }
 }
